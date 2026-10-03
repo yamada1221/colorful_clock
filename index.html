@@ -10,6 +10,7 @@
 		justify-content: center;
 		align-items: center;
 		height: 100vh;
+		min-height: 100dvh;
 		color: #fff;
 		font-family: Arial, sans-serif;
 		position: relative;
@@ -30,7 +31,8 @@
 	}
 
 	#clock {
-		font-size: 15em;
+		font-size: clamp(3rem, 18vw, 15rem);
+		font-variant-numeric: tabular-nums;
 	}
 
 	@keyframes colorChange {
@@ -98,7 +100,7 @@
 			transform: scale(1, 0.8);
 		}
 		100% {
-			transform-origin:bottom top;
+			transform-origin:right top;
 			transform:scale(1, 1);
 		}
 	}
@@ -124,12 +126,19 @@
 			transform:scale(1, 1);
 		}
 	}
+	@media (prefers-reduced-motion: reduce) {
+		#display {
+			animation: none !important;
+			transform: none !important;
+		}
+	}
 </style>
 </head>
 <body>
 <div id="display"></div>
-<div id="clock"></div>
+<time id="clock" aria-label="現在時刻"></time>
 <script>
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 	// 時計
 	function updateClock() {
 		const now = new Date();
@@ -155,6 +164,10 @@
 	const animations = ['colorChange 0.99s linear', 'colorChange2 0.99s linear', 'colorChange3 0.99s linear', 'colorChange4 0.99s linear'];
 	var prevAnimation;
 	function updateAnimation() {
+		if (reduceMotion.matches) {
+			document.querySelector('#display').style.animation = 'none';
+			return;
+		}
 		// ランダムにアニメーションを選択
 		var animation = animations[Math.floor(Math.random()*animations.length)];
 		// 前回のアニメーションと重複した場合、対になるものを選択
@@ -185,6 +198,9 @@
 	setInterval(updateClock, 1000);
 	setInterval(updateBackgroundColor, 1000);
 	setInterval(updateAnimation, 1000);
+	updateClock();
+	updateBackgroundColor();
+	updateBackgroundColorForBody();
 
 </script>
 </body>
