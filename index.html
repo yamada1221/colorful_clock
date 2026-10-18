@@ -7,9 +7,9 @@
 <style>
 	body {
 		margin: 0;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
+		place-items: center;
 		height: 100vh;
 		height: 100dvh;
 		color: #fff;
@@ -141,11 +141,59 @@
 			transform: none !important;
 		}
 	}
+
+	.music-controls {
+		position: absolute; bottom: 0; z-index: 3; box-sizing: border-box;
+		width: min(100%, 42rem); padding: 0 16px max(12px, env(safe-area-inset-bottom));
+		font-size: 0.875rem; text-align: center;
+	}
+	.music-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+	button, select { font: inherit; color: #fff; background: #152032; border: 1px solid #ffffff80; border-radius: 8px; min-height: 44px; padding: 6px 12px; }
+	button { cursor: pointer; min-width: 7em; }
+	input[type="range"] { width: 90px; vertical-align: middle; accent-color: #fff; }
+	a { color: #fff; text-underline-offset: 3px; }
+	:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+	#music-status { min-height: 1.2em; margin: 8px 0; }
+	.credit { font-size: 0.75rem; }
+	.icon-button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; width: 44px; padding: 0; }
+	.icon { display: inline-block; width: 20px; height: 20px; position: relative; flex: none; }
+	.icon-play { width: 0; height: 0; border-top: 9px solid transparent; border-bottom: 9px solid transparent; border-left: 14px solid currentColor; margin-left: 3px; }
+	.icon-stop { width: 15px; height: 15px; background: currentColor; }
+	#music-toggle .icon-stop, #music-toggle[data-state="playing"] .icon-play { display: none; }
+	#music-toggle[data-state="playing"] .icon-stop { display: inline-block; }
+	#music-toggle[aria-busy="true"] { opacity: .65; }
+	.mode-buttons { display: inline-flex; gap: 4px; }
+	.mode-buttons button { min-width: 44px; }
+	.mode-buttons button[aria-pressed="true"] { background: #fff; color: #152032; }
+	.icon-sun::before { content: ""; position: absolute; inset: 5px; border: 2px solid currentColor; border-radius: 50%; }
+	.icon-sun::after { content: ""; position: absolute; width: 2px; height: 3px; top: 0; left: 9px; background: currentColor; box-shadow: 0 17px, 8.5px 8.5px, -8.5px 8.5px, 6px 2.5px, -6px 2.5px, 6px 14.5px, -6px 14.5px; }
+	.icon-moon { width: 17px; height: 17px; border-radius: 50%; box-shadow: -5px 3px 0 0 currentColor; transform: translate(3px,-2px); }
+	#music-track { max-width: min(100%, 20rem); width: 100%; }
+	.track-row { margin-top: 8px; }
+	#controls-reveal { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; padding: 0; min-width: 0; border: 0; border-radius: 0; background: transparent; color: inherit; touch-action: manipulation; }
+	#controls-reveal:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+	.music-controls[hidden] { display: none; }
+	@media (max-height: 320px) { #clock { font-size: min(18vw, 28dvh); } .music-controls { padding-bottom: 4px; } }
 </style>
 </head>
 <body>
 <div id="display" aria-hidden="true"></div>
 <time id="clock" aria-label="現在時刻"></time>
+<button id="controls-reveal" type="button" aria-label="BGMの操作を表示" aria-controls="music-controls" aria-expanded="false"></button>
+<section id="music-controls" class="music-controls" aria-label="BGM" hidden>
+  <div class="music-row">
+    <button id="music-toggle" class="icon-button" type="button" data-state="stopped" aria-label="BGMを再生" title="BGMを再生" aria-pressed="false"><span class="icon icon-play" aria-hidden="true"></span><span class="icon icon-stop" aria-hidden="true"></span></button>
+    <div class="mode-buttons" role="group" aria-label="BGMの時間帯">
+      <button type="button" data-mode="auto" aria-pressed="true">自動</button>
+      <button type="button" class="icon-button" data-mode="day" aria-label="昼の曲" title="昼の曲" aria-pressed="false"><span class="icon icon-sun" aria-hidden="true"></span></button>
+      <button type="button" class="icon-button" data-mode="night" aria-label="夜の曲" title="夜の曲" aria-pressed="false"><span class="icon icon-moon" aria-hidden="true"></span></button>
+    </div>
+    <label>音量 <input id="music-volume" type="range" min="0" max="100" value="25" aria-label="BGMの音量"></label>
+  </div>
+  <div class="track-row"><select id="music-track" aria-label="曲を選ぶ"></select></div>
+  <p id="music-status" role="status">再生ボタンで音楽が流れます</p>
+  <div class="credit">音楽：<a href="https://bgmer.net/" target="_blank" rel="noopener noreferrer">BGMer</a> · <a id="music-source" href="https://bgmer.net/music/333/" target="_blank" rel="noopener noreferrer">楽曲ページ</a></div>
+</section>
 <script>
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 	const clock = document.getElementById('clock');
@@ -191,6 +239,7 @@
 		clock.textContent = time;
 		clock.dateTime = time;
 		updateBackground(animate);
+		window.dispatchEvent(new Event('clocktick'));
 		if (!document.hidden) timer = setTimeout(tick, 1000 - Date.now() % 1000);
 	}
 
@@ -202,5 +251,7 @@
 	reduceMotion.addEventListener('change', () => tick(false));
 	tick(false);
 </script>
+<script src="bgm.js"></script>
+<script src="controls.js"></script>
 </body>
 </html>
