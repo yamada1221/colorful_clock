@@ -8,7 +8,7 @@
 	body {
 		margin: 0;
 		display: grid;
-		grid-template-rows: minmax(0, 1fr) auto;
+		grid-template-rows: minmax(0, 1fr);
 		place-items: center;
 		height: 100vh;
 		height: 100dvh;
@@ -143,7 +143,7 @@
 	}
 
 	.music-controls {
-		position: relative; z-index: 1; box-sizing: border-box;
+		position: absolute; bottom: 0; z-index: 3; box-sizing: border-box;
 		width: min(100%, 42rem); padding: 0 16px max(12px, env(safe-area-inset-bottom));
 		font-size: 0.875rem; text-align: center;
 	}
@@ -170,13 +170,17 @@
 	.icon-moon { width: 17px; height: 17px; border-radius: 50%; box-shadow: -5px 3px 0 0 currentColor; transform: translate(3px,-2px); }
 	#music-track { max-width: min(100%, 20rem); width: 100%; }
 	.track-row { margin-top: 8px; }
+	#controls-reveal { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; padding: 0; min-width: 0; border: 0; border-radius: 0; background: transparent; color: inherit; touch-action: manipulation; }
+	#controls-reveal:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+	.music-controls[hidden] { display: none; }
 	@media (max-height: 320px) { #clock { font-size: min(18vw, 28dvh); } .music-controls { padding-bottom: 4px; } }
 </style>
 </head>
 <body>
 <div id="display" aria-hidden="true"></div>
 <time id="clock" aria-label="現在時刻"></time>
-<section class="music-controls" aria-label="BGM">
+<button id="controls-reveal" type="button" aria-label="BGMの操作を表示" aria-controls="music-controls" aria-expanded="false"></button>
+<section id="music-controls" class="music-controls" aria-label="BGM" hidden>
   <div class="music-row">
     <button id="music-toggle" class="icon-button" type="button" data-state="stopped" aria-label="BGMを再生" title="BGMを再生" aria-pressed="false"><span class="icon icon-play" aria-hidden="true"></span><span class="icon icon-stop" aria-hidden="true"></span></button>
     <div class="mode-buttons" role="group" aria-label="BGMの時間帯">
@@ -248,5 +252,6 @@
 	tick(false);
 </script>
 <script src="bgm.js"></script>
+<script src="controls.js"></script>
 </body>
 </html>
