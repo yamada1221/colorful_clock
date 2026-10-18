@@ -7,9 +7,9 @@
 <style>
 	body {
 		margin: 0;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		display: grid;
+		grid-template-rows: minmax(0, 1fr) auto;
+		place-items: center;
 		height: 100vh;
 		height: 100dvh;
 		color: #fff;
@@ -141,11 +141,39 @@
 			transform: none !important;
 		}
 	}
+
+	.music-controls {
+		position: relative; z-index: 1; box-sizing: border-box;
+		width: min(100%, 42rem); padding: 0 16px max(12px, env(safe-area-inset-bottom));
+		font-size: 0.875rem; text-align: center;
+	}
+	.music-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+	button, select { font: inherit; color: #fff; background: #152032; border: 1px solid #ffffff80; border-radius: 8px; min-height: 44px; padding: 6px 12px; }
+	button { cursor: pointer; min-width: 7em; }
+	input[type="range"] { width: 90px; vertical-align: middle; accent-color: #fff; }
+	a { color: #fff; text-underline-offset: 3px; }
+	:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+	#music-status { min-height: 1.2em; margin: 8px 0; }
+	.credit { font-size: 0.75rem; }
+	@media (max-height: 320px) { #clock { font-size: min(18vw, 28dvh); } .music-controls { padding-bottom: 4px; } }
 </style>
 </head>
 <body>
 <div id="display" aria-hidden="true"></div>
 <time id="clock" aria-label="現在時刻"></time>
+<section class="music-controls" aria-label="BGM">
+  <div class="music-row">
+    <button id="music-toggle" type="button" aria-pressed="false">BGMを再生</button>
+    <select id="music-mode" aria-label="BGMの選曲">
+      <option value="auto">昼夜で自動</option>
+      <option value="day">昼の曲</option>
+      <option value="night">夜の曲</option>
+    </select>
+    <label>音量 <input id="music-volume" type="range" min="0" max="100" value="25" aria-label="BGMの音量"></label>
+  </div>
+  <p id="music-status" role="status">再生ボタンで音楽が流れます</p>
+  <div class="credit">音楽：<a href="https://bgmer.net/" target="_blank" rel="noopener noreferrer">BGMer</a> · <a id="music-source" href="https://bgmer.net/music/333/" target="_blank" rel="noopener noreferrer">楽曲ページ</a></div>
+</section>
 <script>
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 	const clock = document.getElementById('clock');
@@ -191,6 +219,7 @@
 		clock.textContent = time;
 		clock.dateTime = time;
 		updateBackground(animate);
+		window.dispatchEvent(new Event('clocktick'));
 		if (!document.hidden) timer = setTimeout(tick, 1000 - Date.now() % 1000);
 	}
 
@@ -202,5 +231,6 @@
 	reduceMotion.addEventListener('change', () => tick(false));
 	tick(false);
 </script>
+<script src="bgm.js"></script>
 </body>
 </html>
