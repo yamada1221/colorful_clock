@@ -39,6 +39,12 @@
     return selectedMode === 'auto' ? (hour >= 6 && hour < 18 ? 'day' : 'night') : selectedMode;
   }
   function selected() { return cursor[period()]; }
+  // Give the quiet end of the slider more resolution; zero stays fully silent.
+  function volumeGain() {
+    const value = Number(volume.value);
+    const level = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) / 100 : 0;
+    return level * level;
+  }
   function setPlaybackState(state) {
     button.dataset.state = state;
     button.setAttribute('aria-pressed', String(state === 'playing'));
@@ -124,7 +130,7 @@
       }
       const now = context.currentTime;
       const duration = previous && previous !== key ? 5 : 0.4;
-      const target = Number(volume.value) / 100;
+      const target = volumeGain();
       for (const [name, { gain }] of Object.entries(channels)) {
         gain.gain.cancelAndHoldAtTime(now);
         gain.gain.linearRampToValueAtTime(name === key ? target : 0, now + duration);
@@ -167,7 +173,7 @@
     const now = context.currentTime;
     for (const [name, { gain }] of Object.entries(channels)) {
       gain.gain.cancelAndHoldAtTime(now);
-      gain.gain.linearRampToValueAtTime(name === active ? Number(volume.value) / 100 : 0, now + 0.1);
+      gain.gain.linearRampToValueAtTime(name === active ? volumeGain() : 0, now + 0.1);
     }
     cleanup = setTimeout(() => {
       for (const [name, { audio }] of Object.entries(channels)) if (name !== active) audio.pause();

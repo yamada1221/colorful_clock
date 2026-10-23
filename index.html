@@ -188,7 +188,7 @@
       <button type="button" class="icon-button" data-mode="day" aria-label="昼の曲" title="昼の曲" aria-pressed="false"><span class="icon icon-sun" aria-hidden="true"></span></button>
       <button type="button" class="icon-button" data-mode="night" aria-label="夜の曲" title="夜の曲" aria-pressed="false"><span class="icon icon-moon" aria-hidden="true"></span></button>
     </div>
-    <label>音量 <input id="music-volume" type="range" min="0" max="100" value="25" aria-label="BGMの音量"></label>
+    <label>音量 <input id="music-volume" type="range" min="0" max="100" step="0.1" value="25" aria-label="BGMの音量"></label>
   </div>
   <div class="track-row"><select id="music-track" aria-label="曲を選ぶ"></select></div>
   <p id="music-status" role="status">再生ボタンで音楽が流れます</p>
@@ -251,7 +251,7 @@
 	reduceMotion.addEventListener('change', () => tick(false));
 	tick(false);
 </script>
-<script src="bgm.js"></script>
+<script src="bgm.js?v=20261023-volume"></script>
 <script src="controls.js"></script>
 </body>
 </html>

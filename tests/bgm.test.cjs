@@ -37,20 +37,27 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '../bgm.js'),'utf8'), conte
 const click = () => elements['music-toggle'].handlers.click();
 (async () => {
   assert.equal(audios.length,0, 'No audio is loaded or played before a gesture');
-  click();await flush();assert.equal(audios.length,6);assert.equal(audios[0].paused,false);assert.equal(gains[0].gain.value,.25);
+  click();await flush();assert.equal(audios.length,6);assert.equal(audios[0].paused,false);assert.equal(gains[0].gain.value,.0625);
   assert.equal(elements['music-toggle'].attrs['aria-label'],'BGMを停止');
   assert.equal(elements['music-toggle'].dataset.state,'playing');
   assert.match(elements['music-status'].textContent,/スターライトパフェ/);
   hour=18;events.clocktick();await flush();assert.equal(audios[1].paused,false);assert.equal(gains[0].gain.value,0);assert.equal(gains[1].gain.end,5);
   elements['music-volume'].value='0';elements['music-volume'].handlers.input();assert.equal(gains[1].gain.value,0);
-  elements['music-volume'].value='40';elements['music-volume'].handlers.input();assert.equal(gains[1].gain.value,.4);
+  for (const [slider, expected] of [[0,0],[0.1,0.000001],[1,0.0001],[5,0.0025],[10,0.01],[25,0.0625],[40,0.16],[100,1]]) {
+    elements['music-volume'].value=String(slider);elements['music-volume'].handlers.input();
+    assert.ok(Math.abs(gains[1].gain.value-expected)<1e-12, `volume ${slider} should give gain ${expected}`);
+    assert.ok(gains.filter((_,i)=>i!==1).every(g=>g.gain.value===0), 'Inactive tracks stay silent');
+  }
+  elements['music-volume'].value='1';elements['music-volume'].handlers.input();
   click();assert.ok(audios.every(a=>a.paused));assert.equal(timers.size,0);
   // A pending playback promise must not undo a later stop.
   let resolvePlay;playBehavior=()=>new Promise(r=>resolvePlay=r);click();assert.equal(elements['music-toggle'].dataset.state,'loading');click();resolvePlay();await flush();assert.ok(audios.every(a=>a.paused));assert.equal(elements['music-toggle'].attrs['aria-pressed'],'false');
   assert.equal(elements['music-toggle'].attrs['aria-label'],'BGMを再生');
   playBehavior=()=>Promise.reject(Error('blocked'));click();await flush();assert.match(elements['music-status'].textContent,/再生できませんでした/);assert.ok(audios.every(a=>a.paused));
   playBehavior=()=>Promise.resolve();hour=5;click();await flush();assert.match(elements['music-status'].textContent,/プラネタリウム/);
+  assert.equal(gains[1].gain.value,0.0001,'Restart preserves very quiet volume');
   hour=6;events.clocktick();await flush();assert.match(elements['music-status'].textContent,/スターライトパフェ/);
+  assert.equal(gains[0].gain.value,0.0001,'Day/night crossfade preserves very quiet volume');
   modeButtons[2].handlers.click();await flush();hour=12;events.clocktick();assert.match(elements['music-status'].textContent,/プラネタリウム/);
   assert.equal(modeButtons[2].attrs['aria-pressed'],'true');
   audios[1].handlers.ended();await flush();assert.match(elements['music-status'].textContent,/ヒーリングファイア/);
